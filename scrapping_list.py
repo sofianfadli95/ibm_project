@@ -64,69 +64,71 @@ def scrap_lists_mamikos(url):
         driver.find_element_by_xpath('//input[@id="filterPriceMax"]').send_keys("3000000")   # Set to 3 million rupiah per month
         driver.find_element_by_xpath('//button[@class="btn btn-mamigreen btn-primary btn-price"]').click()
         time.sleep(5)
-        for i in range(0, 5):
+        for i in range(0, 21):
             # Save the current main page
             main_page = driver.current_window_handle
             driver.switch_to.window(main_page)
+            list_element = ['//h3[@class="room-title-text track-list-booking-kost"]', '//h3[@class="room-title-text track-list-regular-kost"]']
             # Get all 'kost' title from the main page
-            all_title_kost = driver.find_elements_by_xpath('//h3[@class="room-title-text track-list-booking-kost"]')
-            # driver.find_element_by_xpath('//div[@class="room-title"]').click()
-            time.sleep(20)
-            # Testing buka semua title di list all_title_kost
-            for index, title in enumerate(all_title_kost, start=1):
-                # CLick into title element
-                title.click()
+            for element_tag in list_element:
+                all_title_kost = driver.find_elements_by_xpath(element_tag)
+                # driver.find_element_by_xpath('//div[@class="room-title"]').click()
                 time.sleep(20)
-                handles=driver.window_handles
-                driver.switch_to.window(handles[1])
-                if index == 1:
-                    try:
-                        for i in range(0,4):
-                            # click radio button
-                            python_button = driver.find_elements_by_xpath("//button[@class='btn-next btn-primary']")[0]
-                            # print(python_button)
-                            python_button.click()
+                # Testing buka semua title di list all_title_kost
+                for index, title in enumerate(all_title_kost, start=1):
+                    # CLick into title element
+                    title.click()
+                    time.sleep(20)
+                    handles=driver.window_handles
+                    driver.switch_to.window(handles[1])
+                    if index == 1:
+                        try:
+                            for i in range(0,4):
+                                # click radio button
+                                python_button = driver.find_elements_by_xpath("//button[@class='btn-next btn-primary']")[0]
+                                # print(python_button)
+                                python_button.click()
+                                time.sleep(2)
+                            driver.find_elements_by_xpath("//button[@class='btn-primary swiper-button-disabled']")[0].click()
                             time.sleep(2)
-                        driver.find_elements_by_xpath("//button[@class='btn-primary swiper-button-disabled']")[0].click()
-                        time.sleep(2)
-                    except:
-                        print("Button not found")
-                # Click tombol Informasi yang lebih lengkap
-                driver.find_element_by_xpath('//button[@class="btn btn-success btn-fac-more"]').click()
-                time.sleep(10)
-                html = driver.execute_script("return document.documentElement.outerHTML")
-                # Scrapping dgn menggunakan BeautifulSoup
-                soup = BeautifulSoup(html, 'html.parser')
-                element = soup.findAll("div", {"class": "kost-fac-container"})
-                price = soup.find("span", {"class" : "price-tag"})
-                # Remove the \n and \t from price
-                new_price = re.sub('\s+', '', price.get_text())
-                # Remove 'Rp' from price
-                new_price = new_price.replace('Rp', '')
-                # Remove . from price
-                new_price = new_price.replace('.', '')
-                new_element = element[0].findAll("h3")
-                facilities = []
-                for ele in new_element:
-                    string = ele.get_text()
-                    count_word = string.split(" ")
-                    if len(count_word) > 5:
-                        continue
-                    facilities.append(string)
-                # Mendapatkan panjang dan lebar kamar kosan
-                width, height = facilities[0].split("x")
-                # Menghapus ukuran kost an dari fasilitas
-                del facilities[0]
-                # Write the scrapping result into csv file
-                # New line for remove blank row
-                with open('data_kost_5.csv', mode='a', newline='') as kost_file:
-                    kost_writer = csv.writer(kost_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    kost_writer.writerow([str(new_price), str(width), str(height), facilities])
+                        except:
+                            print("Button not found")
+                    # Click tombol Informasi yang lebih lengkap
+                    driver.find_element_by_xpath('//button[@class="btn btn-success btn-fac-more"]').click()
+                    time.sleep(10)
+                    html = driver.execute_script("return document.documentElement.outerHTML")
+                    # Scrapping dgn menggunakan BeautifulSoup
+                    soup = BeautifulSoup(html, 'html.parser')
+                    element = soup.findAll("div", {"class": "kost-fac-container"})
+                    price = soup.find("span", {"class" : "price-tag"})
+                    # Remove the \n and \t from price
+                    new_price = re.sub('\s+', '', price.get_text())
+                    # Remove 'Rp' from price
+                    new_price = new_price.replace('Rp', '')
+                    # Remove . from price
+                    new_price = new_price.replace('.', '')
+                    new_element = element[0].findAll("h3")
                     facilities = []
-                driver.close()
-                driver.switch_to.window(main_page)
-                # driver.switch_to_window(main_page)
-                time.sleep(20)
+                    for ele in new_element:
+                        string = ele.get_text()
+                        count_word = string.split(" ")
+                        if len(count_word) > 5:
+                            continue
+                        facilities.append(string)
+                    # Mendapatkan panjang dan lebar kamar kosan
+                    width, height = facilities[0].split("x")
+                    # Menghapus ukuran kost an dari fasilitas
+                    del facilities[0]
+                    # Write the scrapping result into csv file
+                    # New line for remove blank row
+                    with open('data_kost_5.csv', mode='a', newline='') as kost_file:
+                        kost_writer = csv.writer(kost_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                        kost_writer.writerow([str(new_price), str(width), str(height), facilities])
+                        facilities = []
+                    driver.close()
+                    driver.switch_to.window(main_page)
+                    # driver.switch_to_window(main_page)
+                    time.sleep(20)
             # Click the next page button
             my_target = driver.find_element_by_xpath('//div[@class="pagination-section"]/ul[@class="pagination"]/li/a[text()=">"]')
             my_target.click()
